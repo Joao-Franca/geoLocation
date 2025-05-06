@@ -1,5 +1,3 @@
-// src/pages/ListScreen.js
-
 import React, { useContext, useState } from 'react';
 import {
   View,
@@ -17,15 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { UsersContext } from '../context/UsersContext';
 import useLocation from '../hooks/useLocation';
+import { Image } from 'react-native';
 
-export default function ListScreen() {
+export default function ListScreen({ navigation }) {
   const { users, updateUser, deleteUser } = useContext(UsersContext);
   const { geocodeAddress } = useLocation();
 
   const [editingIndex, setEditingIndex] = useState(null);
-  const [editName, setEditName]         = useState('');
-  const [editAddress, setEditAddress]   = useState('');
-  const [loadingGeo, setLoadingGeo]     = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [loadingGeo, setLoadingGeo] = useState(false);
 
   const startEditing = (index, user) => {
     setEditingIndex(index);
@@ -105,13 +104,13 @@ export default function ListScreen() {
                 style={[styles.iconButton, styles.edit]}
                 onPress={() => startEditing(index, item)}
               >
-                <Ionicons name="pencil" size={20} color="#fff" />
+                <Image source={require('../../assets/Edit.png')} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.iconButton, styles.delete]}
                 onPress={() => deleteUser(index)}
               >
-                <Ionicons name="trash" size={20} color="#fff" />
+                <Image source={require('../../assets/Delete.png')} style={styles.icon} />
               </TouchableOpacity>
             </View>
           </>
@@ -123,10 +122,18 @@ export default function ListScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Lista de Usuários</Text>
+        {/* Botão de sair no canto superior direito */}
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => navigation.navigate('Home')}
+        >
+          <Ionicons name="close" size={30} color="black" />
+        </TouchableOpacity>
+        
+        <Text style={styles.title}>User List</Text>
         {users.length === 0 ? (
           <View style={styles.center}>
-            <Text style={styles.emptyText}>Nenhum usuário cadastrado.</Text>
+            <Text style={styles.emptyText}>No users registered.</Text>
           </View>
         ) : (
           <FlatList
@@ -152,23 +159,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginVertical: 16,
+    fontSize: 26,
+    fontWeight: '700',
+    marginBottom: 16,  // Ajustado para ficar igual ao da tela de Form
     color: '#333',
     textAlign: 'center',
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 16,
+    padding: 20,
+    marginTop: 12,
     marginBottom: 12,
-    // iOS shadow
+    flexDirection: 'column',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    // Android elevation
     elevation: 2,
   },
   name: {
@@ -194,12 +201,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
-  edit: {
-    backgroundColor: '#3498DB',
-  },
-  delete: {
-    backgroundColor: '#E74C3C',
-  },
   save: {
     backgroundColor: '#2ECC71',
   },
@@ -224,5 +225,16 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+  },
+  icon: {
+    width: 30,
+    height: 30,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    padding: 10,
+    zIndex: 1,
   },
 });

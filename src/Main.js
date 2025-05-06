@@ -1,5 +1,3 @@
-// src/pages/Main.js
-
 import React, { useState } from 'react';
 import {
   View,
@@ -13,7 +11,7 @@ import {
   Text
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import useLocation from '../hooks/useLocation';
+import useLocation from './hooks/useLocation';
 
 export default function Main() {
   const { geocodeAddress, errorMsg: locError } = useLocation();
@@ -40,28 +38,43 @@ export default function Main() {
     if (![name, street, number, city, stateUf].every(Boolean)) {
       return Alert.alert('Erro', 'Preencha todos os campos.');
     }
-
-    const fullAddress = `${street}, ${number} - ${city}, ${stateUf}`;
+  
+    // Cria múltiplas variações do endereço para melhorar a geocodificação
+    const addressVariations = [
+      `${street}, ${number} - ${city}, ${stateUf}`,
+      `${street} ${number}, ${city}, ${stateUf}`,
+      `${street}, ${number}, ${city} ${stateUf}`
+    ];
+  
     try {
-      const results = await geocodeAddress(fullAddress);
-      if (!results || results.length === 0) {
-        return Alert.alert('Erro', 'Endereço não encontrado.');
+      let results = [];
+      
+      // Tenta todas as variações até encontrar um resultado válido
+      for (const address of addressVariations) {
+        results = await geocodeAddress(address);
+        if (results.length > 0) break;
       }
+  
+      if (results.length === 0) {
+        return Alert.alert('Erro', 'Endereço não encontrado. Tente incluir o estado (UF).');
+      }
+  
       const { latitude, longitude } = results[0];
-
+      
       setUsers(old => [
         ...old,
         { name, coords: { latitude, longitude } }
       ]);
-
-      // limpa inputs
+  
+      // Limpa inputs
       setName('');
       setStreet('');
       setNumber('');
       setCity('');
       setStateUf('');
+      
     } catch (err) {
-      Alert.alert('Erro na geocodificação', err.message);
+      Alert.alert('Erro', 'Não foi possível encontrar o endereço. Verifique os dados ou tente outro formato.');
     }
   };
 
