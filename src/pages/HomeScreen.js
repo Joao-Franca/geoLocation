@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeScreen({ navigation }) {
   const handleStart = () => {
-    navigation.navigate("MainTabs"); // Navega para o MainTabs
+    navigation.navigate("MainTabs"); 
   };
 
   return (
@@ -13,7 +13,7 @@ export default function HomeScreen({ navigation }) {
         source={require("../../assets/Geonnect.png")}
         style={styles.logo}
       />
-      <LinearGradient colors={["#386E16", "#097EC3"]} style={styles.button}>
+      <LinearGradient colors={["#097EC3", "#034B84"]} style={styles.button}>
         <TouchableOpacity onPress={handleStart}>
           <Text style={styles.buttonText}>Start</Text>
         </TouchableOpacity>
@@ -36,14 +36,11 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   button: {
-    height: 53,
+    height: 45,
     width: 150,
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: "#0361AB",
-    elevation: 3,
-    
   },
   buttonText: {
     fontSize: 20,

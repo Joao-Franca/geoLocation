@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { UsersContext } from '../context/UsersContext';
 import useLocation from '../hooks/useLocation';
 import { Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ListScreen({ navigation }) {
   const { users, updateUser, deleteUser } = useContext(UsersContext);
@@ -25,6 +26,15 @@ export default function ListScreen({ navigation }) {
   const [editName, setEditName] = useState('');
   const [editAddress, setEditAddress] = useState('');
   const [loadingGeo, setLoadingGeo] = useState(false);
+
+  const updateStorage = async (updatedUsers) => {
+    try {
+      await AsyncStorage.setItem('@users', JSON.stringify(updatedUsers));
+    } catch (error) {
+      console.error('Erro ao atualizar AsyncStorage:', error);
+      throw error;
+    }
+  };
 
   const startEditing = (index, user) => {
     setEditingIndex(index);
@@ -49,16 +59,41 @@ export default function ListScreen({ navigation }) {
         return Alert.alert('Erro', 'Endereço não encontrado.');
       }
       const { latitude, longitude } = results[0];
-      updateUser(editingIndex, {
+      
+      const updatedUser = {
         name: editName,
         address: editAddress,
         coords: { latitude, longitude }
-      });
+      };
+      
+      
+      updateUser(editingIndex, updatedUser);
+      
+      
+      const updatedUsers = [...users];
+      updatedUsers[editingIndex] = updatedUser;
+      await updateStorage(updatedUsers);
+      
       cancelEditing();
     } catch (err) {
-      Alert.alert('Erro na geocodificação', err.message);
+      Alert.alert('Erro', err.message || 'Ocorreu um erro ao atualizar o usuário.');
     } finally {
       setLoadingGeo(false);
+    }
+  };
+
+  const handleDelete = async (index) => {
+    try {
+      
+      deleteUser(index);
+      
+      
+      const updatedUsers = users.filter((_, i) => i !== index);
+      await updateStorage(updatedUsers);
+      
+      Alert.alert('Sucesso', 'Usuário removido com sucesso.');
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível remover o usuário.');
     }
   };
 
@@ -108,7 +143,7 @@ export default function ListScreen({ navigation }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.iconButton, styles.delete]}
-                onPress={() => deleteUser(index)}
+                onPress={() => handleDelete(index)}
               >
                 <Image source={require('../../assets/Delete.png')} style={styles.icon} />
               </TouchableOpacity>
@@ -122,7 +157,6 @@ export default function ListScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Botão de sair no canto superior direito */}
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation.navigate('Home')}
@@ -138,7 +172,7 @@ export default function ListScreen({ navigation }) {
         ) : (
           <FlatList
             data={users}
-            keyExtractor={(_, i) => i.toString()}
+            keyExtractor={(item) => item.id} 
             contentContainerStyle={{ paddingBottom: 20 }}
             renderItem={renderItem}
           />
@@ -161,7 +195,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '700',
-    marginBottom: 16,  // Ajustado para ficar igual ao da tela de Form
+    marginBottom: 16,  
     color: '#333',
     textAlign: 'center',
   },
